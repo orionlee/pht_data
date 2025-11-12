@@ -1,0 +1,10 @@
+__pycache__/
+.ipynb_checkpoints/
+
+poetry.lock
+
+*Scratch*.ipynb
+tmp/
+tmp*/
+
+*/data/cache/
