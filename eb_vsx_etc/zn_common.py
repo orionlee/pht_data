@@ -14,7 +14,10 @@ TEN_SECONDS = 10
 
 def fetch_json(url):
     # the header is needed for Zooniverse subject metadata API call
-    headers = {"accept": "application/vnd.api+json; version=1", "content-type": "application/json"}
+    headers = {
+        "accept": "application/vnd.api+json; version=1",
+        "content-type": "application/json",
+    }
     r = requests.get(url, headers=headers)
     r.raise_for_status()
     return r.json()
@@ -41,14 +44,20 @@ def bulk_process(
                 if return_result:
                     res.append(i_res)
                 else:
-                    res.append(True)  # indicate the process is a success, in case we support skipping those that lead to error
+                    res.append(
+                        True
+                    )  # indicate the process is a success, in case we support skipping those that lead to error
                 if process_result_func is not None:
                     process_result_func(i_res, i, process_kwargs_list[i])
                 break
             except BaseException as err:
-                print(f"Error in processing {i}th call. Arguments: {process_kwargs_list[i]}. Error: {type(err)} {err}")
+                print(
+                    f"Error in processing {i}th call. Arguments: {process_kwargs_list[i]}. Error: {type(err)} {err}"
+                )
                 if try_num < num_retries:
-                    print(f"Retry after {retry_wait_time_seconds} seconds for try #{try_num + 1}")
+                    print(
+                        f"Retry after {retry_wait_time_seconds} seconds for try #{try_num + 1}"
+                    )
                     time.sleep(retry_wait_time_seconds)
                 else:
                     raise err
@@ -58,7 +67,14 @@ def bulk_process(
 
 @sleep_and_retry
 @limits(calls=NUM_CALLS, period=TEN_SECONDS)
-def _get_subject_ids_of_tag_page(project_id, tag, page, end_subject_id_exclusive=None, json=False, also_return_meta=False):
+def _get_subject_ids_of_tag_page(
+    project_id,
+    tag,
+    page,
+    end_subject_id_exclusive=None,
+    json=False,
+    also_return_meta=False,
+):
     url = (
         f"https://talk.zooniverse.org/tags/popular?http_cache=true&taggable_type=Subject"
         f"&section=project-{project_id}&name={tag}&page={page}"
@@ -85,34 +101,50 @@ def _get_subject_ids_of_tag_page(project_id, tag, page, end_subject_id_exclusive
         return res
 
 
-def get_subject_ids_of_tag(project_id, tag, page_start=None, page_end_inclusive=None, end_subject_id_exclusive=None, page_result_func=None):
-
+def get_subject_ids_of_tag(
+    project_id,
+    tag,
+    page_start=None,
+    page_end_inclusive=None,
+    end_subject_id_exclusive=None,
+    page_result_func=None,
+):
     # first determine the start, end page, defaulted to all by using the result metadata
     if page_start is None:
         page_start = 1
 
     if page_end_inclusive is None:
-        _, meta = _get_subject_ids_of_tag_page(project_id=project_id, tag=tag, page=page_start, also_return_meta=True)
+        _, meta = _get_subject_ids_of_tag_page(
+            project_id=project_id, tag=tag, page=page_start, also_return_meta=True
+        )
         # print(_)  # they are subject_ids
         # print(meta)
         page_end_inclusive = meta["page_count"]
-        print(f"[DEBUG] tag: {tag}, page_start: {page_start}, page_end_inclusive: {page_end_inclusive}")
+        print(
+            f"[DEBUG] tag: {tag}, page_start: {page_start}, page_end_inclusive: {page_end_inclusive}"
+        )
 
     kwargs_list = [
-        dict(project_id=project_id, tag=tag, page=i, end_subject_id_exclusive=end_subject_id_exclusive)
+        dict(
+            project_id=project_id,
+            tag=tag,
+            page=i,
+            end_subject_id_exclusive=end_subject_id_exclusive,
+        )
         for i in range(page_start, page_end_inclusive + 1)
     ]
-    return bulk_process(_get_subject_ids_of_tag_page, kwargs_list, process_result_func=page_result_func)
-
-
-
+    return bulk_process(
+        _get_subject_ids_of_tag_page, kwargs_list, process_result_func=page_result_func
+    )
 
 
 @sleep_and_retry
 @limits(calls=NUM_CALLS, period=TEN_SECONDS)
 def _get_subject_ids_of_collection(collection_name, json=False):
     # collection_name is in the form of username/collection_name
-    collection_name_encoded = quote(collection_name, safe="")  # safe="" to ensure "/" is encoded
+    collection_name_encoded = quote(
+        collection_name, safe=""
+    )  # safe="" to ensure "/" is encoded
     url = (
         f"https://www.zooniverse.org/api/collections?http_cache=true"
         f"&slug={collection_name_encoded}"
@@ -135,6 +167,7 @@ def get_subject_ids_of_collection(collection_name, result_func=None):
 @sleep_and_retry
 @limits(calls=NUM_CALLS, period=TEN_SECONDS)
 def get_subject_meta_of_id(id):
-    url = f"https://www.zooniverse.org/api/subjects/{id}?http_cache=true&include=project"
+    url = (
+        f"https://www.zooniverse.org/api/subjects/{id}?http_cache=true&include=project"
+    )
     return fetch_json(url)  # return plain JSON, the details are project specific
-

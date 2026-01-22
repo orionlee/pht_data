@@ -1,11 +1,9 @@
-from pathlib import Path
 import re
 import shutil
+from pathlib import Path
 
 import numpy as np
-
 from zn_common import get_subject_ids_of_collection
-
 
 # PHT Zooniverse Project ID used in API calls
 PHT_ZN_ID = 7929
@@ -37,11 +35,17 @@ def save_all_subject_ids_of_collection(collection_name, skip_if_exists=True):
     return out_path
 
 
+def load_subject_ids_from_file(csv_path):
+    return np.genfromtxt(Path(csv_path), dtype=int)
+
+
 # My EBs, Long Period list
 def save_eblp_subject_ids(skip_if_exists=True):
     out_path = Path("data/eblp_subj_ids.csv")
     eblp_coll = "orionlee/pht-eclipsing-binary-long-period"
-    eblp_out_path = save_all_subject_ids_of_collection(eblp_coll, skip_if_exists=skip_if_exists)
+    eblp_out_path = save_all_subject_ids_of_collection(
+        eblp_coll, skip_if_exists=skip_if_exists
+    )
 
     # eb_lp_out_path is in cache dir, copy it to main dir
     # the extra level of redirection is kept in case EB LP is change to comprise of additional tags/ collections
@@ -49,8 +53,7 @@ def save_eblp_subject_ids(skip_if_exists=True):
 
 
 def load_eblp_subject_ids_from_file():
-    csv_path = Path("data/eblp_subj_ids.csv")
-    return np.genfromtxt(csv_path, dtype=int)
+    return load_subject_ids_from_file("data/eblp_subj_ids.csv")
 
 
 #

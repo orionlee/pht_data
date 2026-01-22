@@ -9,7 +9,11 @@ import pandas as pd
 
 
 def _df_to_csv(df, out_path, mode="a"):
-    if (not mode.startswith("w")) and (os.path.exists(out_path)) and (os.path.getsize(out_path) > 0):
+    if (
+        (not mode.startswith("w"))
+        and (os.path.exists(out_path))
+        and (os.path.getsize(out_path) > 0)
+    ):
         header = False
     else:
         header = True
@@ -33,7 +37,11 @@ def to_csv(data, out_path, mode="a", fieldnames=None):
             raise TypeError(f"Unsupported type for `data`: {type(dict)}")
 
     def write_header_if_needed():
-        if (not mode.startswith("w")) and (os.path.exists(out_path)) and (os.path.getsize(out_path) > 0):
+        if (
+            (not mode.startswith("w"))
+            and (os.path.exists(out_path))
+            and (os.path.getsize(out_path) > 0)
+        ):
             return False  # the file has content. no need to write header
         header = ",".join(fieldnames)
         header = header + "\n"

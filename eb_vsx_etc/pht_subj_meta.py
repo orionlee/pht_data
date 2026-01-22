@@ -14,12 +14,16 @@ def _get_pht_subject_meta_of_id(id, json=False):
     subject = res["subjects"][0]
 
     tic_id = int(subject["metadata"].get("!TIC ID", -1))
-    tmag = float(subject["metadata"].get("Magnitude", -1))  # might be useful , without extra lookup to MAST
+    tmag = float(
+        subject["metadata"].get("Magnitude", -1)
+    )  # might be useful , without extra lookup to MAST
 
     # extract subject image's uuid
     img_url = subject["locations"][0].get("image/png", "")
     img_id = img_url
-    match_res = re.match(r"https://panoptes-uploads.zooniverse.org/subject_location/(.+)[.]png", img_url)
+    match_res = re.match(
+        r"https://panoptes-uploads.zooniverse.org/subject_location/(.+)[.]png", img_url
+    )
     if match_res is not None:
         img_id = match_res[1]
 
@@ -34,7 +38,11 @@ def _get_pht_subject_meta_of_id(id, json=False):
 
 def get_subject_meta_of_ids(ids, subject_result_func=None):
     kwargs_list = [dict(id=id) for id in ids]
-    return bulk_process(_get_pht_subject_meta_of_id, kwargs_list, process_result_func=subject_result_func)
+    return bulk_process(
+        _get_pht_subject_meta_of_id,
+        kwargs_list,
+        process_result_func=subject_result_func,
+    )
 
 
 def save_eblp_subject_meta(skip_if_exists=True):
