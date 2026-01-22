@@ -1,9 +1,8 @@
-from pathlib import Path
 import re
+from pathlib import Path
 
 from common import to_csv
-from zn_common import get_subject_meta_of_id, bulk_process
-from pht_subj_ids import load_eblp_subject_ids_from_file
+from zn_common import bulk_process, get_subject_meta_of_id
 
 
 def _get_pht_subject_meta_of_id(id, json=False):
@@ -45,19 +44,24 @@ def get_subject_meta_of_ids(ids, subject_result_func=None):
     )
 
 
-def save_eblp_subject_meta(skip_if_exists=True):
+def save_subject_meta(
+    subject_ids,
+    out_path,
+    fieldnames=["subject_id", "tic_id", "img_id", "tmag"],
+    skip_if_exists=True,
+):
+    if not isinstance(out_path, Path):
+        out_path = Path(out_path)
+
+    # Note: the logic here will append to an existing csv if the file exists
+    # One needs to remove the existing file beforehand if that is not desired.
     def do_save(subject_meta, call_i, call_kwargs):
-        out_path = Path("data/eblp_subj_meta.csv")
-        fieldnames = ["subject_id", "tic_id", "img_id", "tmag"]
         to_csv(subject_meta, out_path, mode="a", fieldnames=fieldnames)
 
-    ids = load_eblp_subject_ids_from_file()
-    print(f"EBLP Meta for {len(ids)} subjects: {ids[0]} ... {ids[-1]}")
-    get_subject_meta_of_ids(ids, subject_result_func=do_save)
+    if skip_if_exists and out_path.exists() and out_path.stat().st_size > 0:
+        print(
+            f"[DEBUG] Save Subject Metadata to {out_path} skipped (with existing data)"
+        )
+        return
 
-
-#
-# Top level driver
-#
-if __name__ == "__main__":
-    save_eblp_subject_meta()
+    get_subject_meta_of_ids(subject_ids, subject_result_func=do_save)
