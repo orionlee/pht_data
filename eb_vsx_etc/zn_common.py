@@ -1,11 +1,11 @@
+import json
 import time
-
-import requests
-from tqdm import tqdm
-
-from ratelimit import limits, sleep_and_retry
 from urllib.parse import quote
 
+import numpy as np
+import requests
+from ratelimit import limits, sleep_and_retry
+from tqdm import tqdm
 
 # throttle HTTP calls to Zooniverse
 NUM_CALLS = 10
@@ -171,3 +171,21 @@ def get_subject_meta_of_id(id):
         f"https://www.zooniverse.org/api/subjects/{id}?http_cache=true&include=project"
     )
     return fetch_json(url)  # return plain JSON, the details are project specific
+
+
+# from https://stackoverflow.com/a/57915246
+class NpEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, np.integer):
+            return int(o)
+        if isinstance(o, np.floating):
+            return float(o)
+        if isinstance(o, np.ndarray):
+            return o.tolist()
+        return super(NpEncoder, self).default(o)
+
+
+def json_np_dump(obj, fp, **kwargs):
+    """JSON dump that supports numpy data types"""
+    kwargs["cls"] = NpEncoder
+    return json.dump(obj, fp, **kwargs)
