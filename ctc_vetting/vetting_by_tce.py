@@ -197,7 +197,7 @@ def vet(
         res = dict(classification="", all_matched="")
         if also_return_diagnostics:
             return res, SimpleNamespace(
-                df_tces=None, transit_spec1=None, transit_spec2=None, df_all_tces=None
+                df_tces=None, transit_spec1=None, transit_spec2=None, df_all_tces=df
             )
         else:
             return res
@@ -205,7 +205,7 @@ def vet(
         res = dict(classification="Uncertain-NoTCE", all_matched="NA")
         if also_return_diagnostics:
             return res, SimpleNamespace(
-                df_tces=None, transit_spec1=None, transit_spec2=None, df_all_tces=None
+                df_tces=None, transit_spec1=None, transit_spec2=None, df_all_tces=df
             )
         else:
             return res
