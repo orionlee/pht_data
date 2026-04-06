@@ -49,10 +49,12 @@ def box_transit_model(
 
     if not return_lc:
         return x, y
-    return lk.LightCurve(
+    lc = lk.LightCurve(
         time=Time(x, format=time_obj.format, scale=time_obj.scale),
         flux=y * u.dimensionless_unscaled,
     )
+    lc.meta["NORMALIZED"] = True
+    return lc
 
 
 def select_columns(lc, columns=["flux", "flux_err"]):
@@ -67,6 +69,7 @@ def plot_subject_with_vetting_result(
     input_row,
     vetting_result,
     vetting_diagnostics,
+    plot_model=True,
     lc_src="mast",
     lctools_zip_dir=".",
     ax=None,
@@ -101,18 +104,19 @@ def plot_subject_with_vetting_result(
             # lctools data is already binned
             lc.scatter(ax=ax, c="black", alpha=0.5, label=f"{lc.label}, S.{lc.sector}")
 
-        lc_model = box_transit_model(
-            lc.time,
-            vetting_diagnostics.transit_spec1,
-            vetting_diagnostics.transit_spec2,
-        )
-        lc_model.plot(ax=ax, c="red", alpha=0.7, lw=2, ls="-")
+        if plot_model:
+            lc_model = box_transit_model(
+                lc.time,
+                vetting_diagnostics.transit_spec1,
+                vetting_diagnostics.transit_spec2,
+            )
+            lc_model.plot(ax=ax, c="red", alpha=0.7, lw=2, ls="-")
 
         marked_matched = [t[0] for t in vetting_result["matched"]]
         ax.vlines(
             marked_matched,
             ymin=0,
-            ymax=0.3,
+            ymax=0.15,
             transform=ax.get_xaxis_transform(),
             lw=2.5,
             ls="--",
@@ -124,7 +128,7 @@ def plot_subject_with_vetting_result(
         ax.vlines(
             marked_not_matched,
             ymin=0,
-            ymax=0.3,
+            ymax=0.15,
             transform=ax.get_xaxis_transform(),
             lw=4,
             ls="--",

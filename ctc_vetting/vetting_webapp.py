@@ -5,6 +5,7 @@ from io import BytesIO
 from types import SimpleNamespace
 
 import matplotlib
+import matplotlib.pyplot as plt
 import tess_dv_fast
 import vetting_by_tce
 import vetting_by_tce_plot
@@ -49,7 +50,9 @@ def _parse_transit_times(val_str, transit_time_ndigits=2):
     # assumes the input is in the form of [1.2, 3.45, 6.78], with empty ones being []
     if val_str == "[]":
         return []
-    if val_str == "0":  # in some CTC subjects,  marked_transits is "0" for unknown reason
+    if (
+        val_str == "0"
+    ):  # in some CTC subjects,  marked_transits is "0" for unknown reason
         return []
     return [round(float(t), transit_time_ndigits) for t in val_str[1:-1].split(",")]
 
@@ -123,12 +126,54 @@ def _render_vet_result(r, res, diagnostics):
     # LC plot
     if diagnostics.df_tces is not None:
         ax = vetting_by_tce_plot.plot_subject_with_vetting_result(
-            r, res, diagnostics, lc_src=lc_src, lctools_zip_dir=lctools_zip_dir
+            r,
+            res,
+            diagnostics,
+            plot_model=True,
+            lc_src=lc_src,
+            lctools_zip_dir=lctools_zip_dir,
         )
-        plot_data = _fig_to_base64(ax.get_figure())
-        plot_html = (
-            f"""<img src="data:image/png;base64,{plot_data}" alt="Lightcurve Plot">"""
+        plot_w_model_data = _fig_to_base64(ax.get_figure())
+        plt.close(ax.get_figure())
+
+        ax = vetting_by_tce_plot.plot_subject_with_vetting_result(
+            r,
+            res,
+            diagnostics,
+            plot_model=False,
+            lc_src=lc_src,
+            lctools_zip_dir=lctools_zip_dir,
         )
+        plot_no_model_data = _fig_to_base64(ax.get_figure())
+        plt.close(ax.get_figure())
+
+        plot_html = f"""
+<div id="lc_plot" onclick="this.classList.toggle('show-alt');">
+    <img src="data:image/png;base64,{
+            plot_w_model_data
+        }" class="main" alt="Lightcurve Plot (w/ TCE model)">
+    <img src="data:image/png;base64,{
+            plot_no_model_data
+        }" class="alt" alt="Lightcurve Plot (no TCE Model)">
+</div>
+"""
+        plot_html += """
+<style type="text/css">
+#lc_plot > img.main {
+    display: block;
+}
+#lc_plot > img.alt {
+    display: none;
+}
+#lc_plot.show-alt > img.main {
+    display: none;
+}
+#lc_plot.show-alt > img.alt {
+    display: block;
+}
+</style>
+"""
+
     else:
         plot_html = ""
 
@@ -178,7 +223,7 @@ def _render_vet_result(r, res, diagnostics):
 
     main_content += f"""\
 <details {open_attr}>
-    <summary><b>All TCEs</b></summary>
+    <summary><b>All TCEs</b> ({len(df_all_tces)})</summary>
     {all_tces_html}
 </details>"""
 
