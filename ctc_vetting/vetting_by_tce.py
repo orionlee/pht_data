@@ -194,7 +194,11 @@ def vet(
     df = tess_dv_fast.get_tce_infos_of_tic(tic)
     if len(marked_transits) < 1:
         # case no marked transits (e.g., from algorithm pipeline)
-        res = dict(classification="", all_matched="")
+        if len(df) < 1:
+            # explicitly call out there is no matching TCE
+            res = dict(classification="?-NoTCE", all_matched="")
+        else:
+            res = dict(classification="?", all_matched="")
         if also_return_diagnostics:
             return res, SimpleNamespace(
                 df_tces=None, transit_spec1=None, transit_spec2=None, df_all_tces=df
