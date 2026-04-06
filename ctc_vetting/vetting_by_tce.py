@@ -191,31 +191,37 @@ def vet(
         tic_w_marked_transits.marked_transits,
     )
 
-    df = tess_dv_fast.get_tce_infos_of_tic(tic)
+    df_tces = tess_dv_fast.get_tce_infos_of_tic(tic)
     if len(marked_transits) < 1:
         # case no marked transits (e.g., from algorithm pipeline)
-        if len(df) < 1:
+        if len(df_tces) < 1:
             # explicitly call out there is no matching TCE
             res = dict(classification="?-NoTCE", all_matched="")
         else:
             res = dict(classification="?", all_matched="")
         if also_return_diagnostics:
             return res, SimpleNamespace(
-                df_tces=None, transit_spec1=None, transit_spec2=None, df_all_tces=df
+                df_tces=None,
+                transit_spec1=None,
+                transit_spec2=None,
+                df_all_tces=df_tces,
             )
         else:
             return res
-    if len(df) < 1:  # case no TCE
+    if len(df_tces) < 1:  # case no TCE
         res = dict(classification="Uncertain-NoTCE", all_matched="NA")
         if also_return_diagnostics:
             return res, SimpleNamespace(
-                df_tces=None, transit_spec1=None, transit_spec2=None, df_all_tces=df
+                df_tces=None,
+                transit_spec1=None,
+                transit_spec2=None,
+                df_all_tces=df_tces,
             )
         else:
             return res
 
     # df_transit_specs: a subset of the df with the relevant TCEs
-    transit_spec1, transit_spec2, df_transit_specs = get_transit_specs(df)
+    transit_spec1, transit_spec2, df_transit_specs = get_transit_specs(df_tces)
     # MUST pass df_transit_specs instead of df,
     # as get_tce_type() assumes the dataframe supplied only contains TCEs
     # relevant to the identified primary / secondary dips, and nothing more.
@@ -293,7 +299,7 @@ def vet(
         df_tces=df_transit_specs,
         transit_spec1=transit_spec1,
         transit_spec2=transit_spec2,
-        df_all_tces=df,
+        df_all_tces=df_tces,
     )
     return res, diagnostics
 
