@@ -95,6 +95,10 @@ def plot_subject_with_vetting_result(
         if ax is None:
             ax = plt.figure(figsize=figsize).gca()
 
+        if lc is None:
+            ax.set_title(f"TIC {r.tic}, S.{r.sector}: Lightcurve not found")
+            return ax
+
         if lc_src == "mast":
             # plot the 2-min cadence data and a binned version
             lc_b = select_columns(lc).bin(time_bin_size=10 * u.min)
